@@ -13,7 +13,7 @@ public class PostModel {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private long authorId;
-    private int likes;
+    private long[] likesIds;
     private long[] commentsIds;
     private String[] tags;
     private boolean isBanned;
