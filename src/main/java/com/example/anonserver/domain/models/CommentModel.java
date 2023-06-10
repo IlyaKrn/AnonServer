@@ -3,6 +3,8 @@ package com.example.anonserver.domain.models;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Entity
@@ -14,8 +16,8 @@ public class CommentModel {
     private long id;
     private long authorId;
     private String text;
-    private String[] imagesUrls;
-    private String[] filesUrls;
+    private ArrayList<String> imagesUrls;
+    private ArrayList<String> filesUrls;
     private boolean isBanned;
 
 }
