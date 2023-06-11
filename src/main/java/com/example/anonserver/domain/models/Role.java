@@ -12,4 +12,16 @@ public enum Role implements GrantedAuthority {
     public String getAuthority() {
         return name();
     }
+
+
+    public static Role getFromString(String s){
+        switch (s){
+            case "USER":
+                return Role.USER;
+            case "ADMIN":
+                return Role.ADMIN;
+            default:
+                throw new ClassCastException("String " + s + " can not be cast to Role");
+        }
+    }
 }

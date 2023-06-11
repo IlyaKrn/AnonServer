@@ -16,8 +16,12 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 @Slf4j
 @Component
@@ -38,8 +42,8 @@ public class JwtFilter extends GenericFilterBean {
             jwtInfoToken.setAuthenticated(true);
             jwtInfoToken.setFirstName(claims.getSubject());
             Set<Role> roles = new HashSet<>();
-            for (int i = 0; i < claims.get("roles", Role[].class).length; i++){
-                roles.add(claims.get("roles", Role[].class)[i]);
+            for (int i = 0; i < claims.get("roles", ArrayList.class).toArray().length; i++){
+                roles.add(Role.getFromString((String) claims.get("roles", ArrayList.class).get(i)));
             }
             jwtInfoToken.setRoles(roles);
             SecurityContextHolder.getContext().setAuthentication(jwtInfoToken);
