@@ -18,17 +18,13 @@ public class CommentModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(columnDefinition = "bigint", nullable = false)
     private long id;
-    @Column(columnDefinition = "bigint", nullable = false)
     private long authorId;
-    @Column(columnDefinition = "text")
     private String text;
-    @Column(columnDefinition = "text[]")
-    private ArrayList<String> imagesUrls;
-    @Column(columnDefinition = "text[]")
-    private ArrayList<String> filesUrls;
-    @Column(columnDefinition = "boolean", nullable = false)
+    @ElementCollection
+    private List<String> imagesUrls;
+    @ElementCollection
+    private List<String> filesUrls;
     private boolean isBanned;
 
 }

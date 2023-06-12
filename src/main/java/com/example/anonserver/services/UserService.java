@@ -21,8 +21,6 @@ public class UserService {
 
     public Optional<UserModel> getByLogin(@NonNull String login) {
         ArrayList<Role> r = new ArrayList<>();
-        r.add(Role.USER);
-        userRepository.save(new UserModel(0, "u", "123", false, new ArrayList<>(), r));
         return userRepository.findAll().stream()
                 .filter(user -> login.equals(user.getUsername()))
                 .findFirst();

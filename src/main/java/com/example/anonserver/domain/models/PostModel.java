@@ -18,26 +18,21 @@ public class PostModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(columnDefinition = "bigint", nullable = false)
     private long id;
-    @Column(columnDefinition = "bigint", nullable = false)
     private long authorId;
-    @Column(columnDefinition = "bigint[]")
-    private ArrayList<Long> likesIds;
-    @Column(columnDefinition = "bigint[]")
-    private ArrayList<Long> commentsIds;
-    @Column(columnDefinition = "text[]")
-    private ArrayList<String> tags;
-    @Column(columnDefinition = "boolean", nullable = false)
+    @ElementCollection
+    private List<Long> likesIds;
+    @ElementCollection
+    private List<Long> commentsIds;
+    @ElementCollection
+    private List<String> tags;
     private boolean isBanned;
-    @Column(columnDefinition = "bigint", nullable = false)
     private long uploadTime;
-    @Column(columnDefinition = "boolean", nullable = false)
     private boolean isEdited;
-    @Column(columnDefinition = "text[]")
-    private ArrayList<String> imagesUrls;
-    @Column(columnDefinition = "text[]")
-    private ArrayList<String> filesUrls;
+    @ElementCollection
+    private List<String> imagesUrls;
+    @ElementCollection
+    private List<String> filesUrls;
 
 
 }
