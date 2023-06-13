@@ -59,7 +59,7 @@ public class AuthController {
 
     @PostMapping("register")
     public ResponseEntity<JwtResponse> register(@RequestBody JwtRequest authRequest) throws AuthException {
-        if(userRepository.findByUsername(authRequest.getUsername()) == null){
+        if(!userRepository.existsByUsername(authRequest.getUsername())){
             ArrayList<Role> roles = new ArrayList<>();
             roles.add(Role.USER);
             userRepository.save(new UserModel(0, authRequest.getUsername(), authRequest.getPassword(), false, new ArrayList<>(), roles));
