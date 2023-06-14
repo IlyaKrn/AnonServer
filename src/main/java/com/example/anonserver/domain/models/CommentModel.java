@@ -25,6 +25,8 @@ public class CommentModel {
     private List<String> imagesUrls;
     @ElementCollection
     private List<String> filesUrls;
+    private long uploadTime;
+    private boolean isEdited;
     private boolean isBanned;
     private boolean isDeleted;
 

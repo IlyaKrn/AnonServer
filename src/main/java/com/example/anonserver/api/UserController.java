@@ -4,6 +4,7 @@ import com.example.anonserver.api.models.users.UserAdminResponse;
 import com.example.anonserver.api.models.users.UserAdminSelfResponse;
 import com.example.anonserver.api.models.users.UserBaseResponse;
 import com.example.anonserver.api.models.users.UserBaseSelfResponse;
+import com.example.anonserver.domain.models.CommentModel;
 import com.example.anonserver.domain.models.Role;
 import com.example.anonserver.domain.models.UserModel;
 import com.example.anonserver.repositories.UserRepository;
@@ -12,10 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/users")
@@ -62,6 +60,34 @@ public class UserController {
         if(userRepository.existsByUsername(auth.getName())){
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             return ResponseEntity.ok(new UserAdminSelfResponse(u.getId(), u.getUsername(), u.getPassword(), u.getSubscribersIds(), u.getRoles()));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("ban")
+    public ResponseEntity ban(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(userRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            UserModel c = userRepository.findById(id).get();
+            if (auth.getAuthorities().contains(Role.ADMIN)) {
+                userRepository.save(new UserModel(c.getId(), c.getUsername(), c.getPassword(), true, c.getSubscribersIds(), c.getRoles()));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("unban")
+    public ResponseEntity unban(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(userRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            UserModel c = userRepository.findById(id).get();
+            if (auth.getAuthorities().contains(Role.ADMIN)) {
+                userRepository.save(new UserModel(c.getId(), c.getUsername(), c.getPassword(), false, c.getSubscribersIds(), c.getRoles()));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }

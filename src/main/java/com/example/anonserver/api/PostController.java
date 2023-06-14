@@ -1,5 +1,6 @@
 package com.example.anonserver.api;
 
+import com.example.anonserver.api.models.edit.EditPostRequest;
 import com.example.anonserver.api.models.posts.PostAdminResponse;
 import com.example.anonserver.api.models.posts.PostAdminSelfResponse;
 import com.example.anonserver.api.models.posts.PostBaseResponse;
@@ -15,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("api/posts")
@@ -87,7 +90,7 @@ public class PostController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             PostModel p = postRepository.findById(id).get();
             if (p.getAuthorId() == u.getId()) {
-                postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getTags(), p.isBanned(), true, p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+                postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getText(), p.getTags(), p.isBanned(), true, p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -101,7 +104,7 @@ public class PostController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             PostModel p = postRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
-                postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getTags(), true, p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+                postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getText(), p.getTags(), true, p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -115,12 +118,34 @@ public class PostController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             PostModel p = postRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
-                postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getTags(), false, p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+                postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getText(), p.getTags(), false, p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("edit")
+    public ResponseEntity edit(@RequestParam("id") long id, @RequestBody EditPostRequest request){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(postRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            PostModel p = postRepository.findById(id).get();
+            if (p.getAuthorId() == u.getId()) {
+                postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), request.getText(),request.getTags(), p.isBanned(), p.isDeleted(), p.getUploadTime(), true, request.getImagesUrls(), request.getFilesUrls()));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("create")
+    public ResponseEntity create(@RequestBody EditPostRequest request){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserModel u = userRepository.findByUsername(auth.getName()).get();
+        PostModel p = new PostModel(0, u.getId(), new ArrayList<>(), new ArrayList<>(), request.getText(), request.getTags(), false, false, System.currentTimeMillis(), false, request.getImagesUrls(), request.getFilesUrls());
+        postRepository.save(p);
+        return ResponseEntity.ok(null);
     }
 
 }

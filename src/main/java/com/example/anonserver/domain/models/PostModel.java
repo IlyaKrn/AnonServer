@@ -24,6 +24,7 @@ public class PostModel {
     private List<Long> likesIds;
     @ElementCollection
     private List<Long> commentsIds;
+    private String text;
     @ElementCollection
     private List<String> tags;
     private boolean isBanned;
