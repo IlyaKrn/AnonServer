@@ -14,10 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/posts")
@@ -77,6 +74,49 @@ public class PostController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             if(p.getAuthorId() == u.getId() && auth.getAuthorities().contains(Role.ADMIN)){
                 return ResponseEntity.ok(new PostAdminSelfResponse(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getTags(), p.isBanned(), p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    @PostMapping("delete")
+    public ResponseEntity delete(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(postRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            PostModel p = postRepository.findById(id).get();
+            if (p.getAuthorId() == u.getId()) {
+                postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getTags(), p.isBanned(), true, p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("ban")
+    public ResponseEntity ban(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(postRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            PostModel p = postRepository.findById(id).get();
+            if (auth.getAuthorities().contains(Role.ADMIN)) {
+                postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getTags(), true, p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("unban")
+    public ResponseEntity unban(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(postRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            PostModel p = postRepository.findById(id).get();
+            if (auth.getAuthorities().contains(Role.ADMIN)) {
+                postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getTags(), false, p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+                return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
