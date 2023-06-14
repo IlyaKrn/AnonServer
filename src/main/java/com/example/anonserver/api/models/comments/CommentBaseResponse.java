@@ -1,11 +1,8 @@
-package com.example.anonserver.api.models.posts;
-
+package com.example.anonserver.api.models.comments;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.GeneratedValue;
@@ -16,13 +13,11 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostBaseResponse {
+public class CommentBaseResponse {
+
     private long id;
-    private int likesCount;
-    private List<Long> commentsIds;
-    private List<String> tags;
-    private long uploadTime;
-    private boolean isEdited;
+    private String text;
     private List<String> imagesUrls;
     private List<String> filesUrls;
+
 }

@@ -1,29 +1,24 @@
-package com.example.anonserver.domain.models;
+package com.example.anonserver.api.models.comments;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
-import java.util.ArrayList;
+import javax.persistence.ElementCollection;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import java.util.List;
 
 @Data
-@Entity
-@Table(name = "comments")
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommentModel {
+public class CommentAdminResponse {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private long authorId;
     private String text;
-    @ElementCollection
     private List<String> imagesUrls;
-    @ElementCollection
     private List<String> filesUrls;
     private boolean isBanned;
     private boolean isDeleted;
