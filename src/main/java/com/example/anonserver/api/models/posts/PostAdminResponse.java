@@ -1,39 +1,31 @@
-package com.example.anonserver.domain.models;
+package com.example.anonserver.api.models.posts;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.persistence.*;
-import java.util.ArrayList;
+import javax.persistence.ElementCollection;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import java.util.List;
 
 @Data
-@Entity
-@Table(name = "posts")
 @AllArgsConstructor
 @NoArgsConstructor
-public class PostModel {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+public class PostAdminResponse {
     private long id;
     private long authorId;
-    @ElementCollection
     private List<Long> likesIds;
-    @ElementCollection
     private List<Long> commentsIds;
-    @ElementCollection
     private List<String> tags;
     private boolean isBanned;
     private boolean isDeleted;
     private long uploadTime;
     private boolean isEdited;
-    @ElementCollection
     private List<String> imagesUrls;
-    @ElementCollection
     private List<String> filesUrls;
-
-
 }

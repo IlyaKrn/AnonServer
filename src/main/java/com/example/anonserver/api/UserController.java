@@ -1,18 +1,15 @@
 package com.example.anonserver.api;
 
-import com.example.anonserver.api.models.UserAdminResponse;
-import com.example.anonserver.api.models.UserAdminSelfResponse;
-import com.example.anonserver.api.models.UserBaseResponse;
-import com.example.anonserver.api.models.UserSelfResponse;
+import com.example.anonserver.api.models.users.UserAdminResponse;
+import com.example.anonserver.api.models.users.UserAdminSelfResponse;
+import com.example.anonserver.api.models.users.UserBaseResponse;
+import com.example.anonserver.api.models.users.UserBaseSelfResponse;
 import com.example.anonserver.domain.models.Role;
 import com.example.anonserver.domain.models.UserModel;
 import com.example.anonserver.repositories.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,11 +34,11 @@ public class UserController {
     }
 
     @GetMapping("getSelf")
-    public ResponseEntity<UserSelfResponse> getSelf(){
+    public ResponseEntity<UserBaseSelfResponse> getSelf(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(userRepository.existsByUsername(auth.getName())){
             UserModel u = userRepository.findByUsername(auth.getName()).get();
-            return ResponseEntity.ok(new UserSelfResponse(u.getId(), u.getUsername(), u.getPassword(), u.isBanned(), u.getSubscribersIds().size(), u.getRoles()));
+            return ResponseEntity.ok(new UserBaseSelfResponse(u.getId(), u.getUsername(), u.getPassword(), u.getSubscribersIds().size(), u.getRoles()));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
@@ -64,7 +61,7 @@ public class UserController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(userRepository.existsByUsername(auth.getName())){
             UserModel u = userRepository.findByUsername(auth.getName()).get();
-            return ResponseEntity.ok(new UserAdminSelfResponse(u.getId(), u.getUsername(), u.getPassword(), u.isBanned(), u.getSubscribersIds(), u.getRoles()));
+            return ResponseEntity.ok(new UserAdminSelfResponse(u.getId(), u.getUsername(), u.getPassword(), u.getSubscribersIds(), u.getRoles()));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }

@@ -1,4 +1,4 @@
-package com.example.anonserver.api.models;
+package com.example.anonserver.api.models.users;
 
 import com.example.anonserver.domain.models.Role;
 import lombok.AllArgsConstructor;
@@ -14,12 +14,11 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserSelfResponse {
+public class UserBaseResponse {
 
     private long id;
-    private String username;
-    private String password;
     private boolean isBanned;
     private int subscribersCount;
     private List<Role> roles;
+
 }

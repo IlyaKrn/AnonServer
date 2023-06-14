@@ -2,6 +2,7 @@ package com.example.anonserver.jwt;
 
 
 import com.example.anonserver.domain.models.Role;
+import com.example.anonserver.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ import java.util.logging.Logger;
 public class JwtFilter extends GenericFilterBean {
 
     private static final String AUTHORIZATION = "Authorization";
+    private UserRepository userRepository;
 
     private final JwtProvider jwtProvider;
 
@@ -38,15 +40,17 @@ public class JwtFilter extends GenericFilterBean {
         final String token = getTokenFromRequest((HttpServletRequest) request);
         if (token != null && jwtProvider.validateAccessToken(token)) {
             final Claims claims = jwtProvider.getAccessClaims(token);
-            final JwtAuthentication jwtInfoToken = new JwtAuthentication();
-            jwtInfoToken.setAuthenticated(true);
-            jwtInfoToken.setFirstName(claims.getSubject());
-            Set<Role> roles = new HashSet<>();
-            for (int i = 0; i < claims.get("roles", ArrayList.class).toArray().length; i++){
-                roles.add(Role.getFromString((String) claims.get("roles", ArrayList.class).get(i)));
+            if (userRepository.existsById(Long.valueOf(claims.getId())) && !userRepository.findById(Long.valueOf(claims.getId())).get().isBanned()){
+                final JwtAuthentication jwtInfoToken = new JwtAuthentication();
+                jwtInfoToken.setAuthenticated(true);
+                jwtInfoToken.setFirstName(claims.getSubject());
+                Set<Role> roles = new HashSet<>();
+                for (int i = 0; i < claims.get("roles", ArrayList.class).toArray().length; i++){
+                    roles.add(Role.getFromString((String) claims.get("roles", ArrayList.class).get(i)));
+                }
+                jwtInfoToken.setRoles(roles);
+                SecurityContextHolder.getContext().setAuthentication(jwtInfoToken);
             }
-            jwtInfoToken.setRoles(roles);
-            SecurityContextHolder.getContext().setAuthentication(jwtInfoToken);
         }
         fc.doFilter(request, response);
     }
