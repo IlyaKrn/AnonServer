@@ -22,6 +22,8 @@ public class CommentModel {
     private long authorId;
     private String text;
     @ElementCollection
+    private List<Long> likesIds;
+    @ElementCollection
     private List<String> imagesUrls;
     @ElementCollection
     private List<String> filesUrls;

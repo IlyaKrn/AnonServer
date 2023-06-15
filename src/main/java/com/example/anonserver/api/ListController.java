@@ -78,8 +78,18 @@ public class ListController {
         });
 
         ArrayList<Long> response = new ArrayList<>();
-        for (int i = offset; i < count + offset; i++){
-            response.add(temp.get(i).getKey());
+        if (offset > temp.size()){
+            return ResponseEntity.ok(new ArrayList<>());
+        }
+        else if(offset + count > temp.size()){
+            for (int i = offset; i < temp.size(); i++){
+                response.add(temp.get(i).getKey());
+            }
+        }
+        else {
+            for (int i = offset; i < count + offset; i++){
+                response.add(temp.get(i).getKey());
+            }
         }
 
         return ResponseEntity.ok(response);

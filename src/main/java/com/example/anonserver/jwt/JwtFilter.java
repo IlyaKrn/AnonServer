@@ -6,6 +6,7 @@ import com.example.anonserver.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -30,6 +31,7 @@ import java.util.logging.Logger;
 public class JwtFilter extends GenericFilterBean {
 
     private static final String AUTHORIZATION = "Authorization";
+    @Autowired
     private UserRepository userRepository;
 
     private final JwtProvider jwtProvider;
@@ -40,7 +42,7 @@ public class JwtFilter extends GenericFilterBean {
         final String token = getTokenFromRequest((HttpServletRequest) request);
         if (token != null && jwtProvider.validateAccessToken(token)) {
             final Claims claims = jwtProvider.getAccessClaims(token);
-            if (userRepository.existsById(Long.valueOf(claims.getId())) && !userRepository.findById(Long.valueOf(claims.getId())).get().isBanned()){
+            if (userRepository.existsByUsername(claims.getSubject()) && !userRepository.findByUsername(claims.getSubject()).get().isBanned()){
                 final JwtAuthentication jwtInfoToken = new JwtAuthentication();
                 jwtInfoToken.setAuthenticated(true);
                 jwtInfoToken.setFirstName(claims.getSubject());

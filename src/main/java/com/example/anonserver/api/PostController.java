@@ -147,5 +147,35 @@ public class PostController {
         postRepository.save(p);
         return ResponseEntity.ok(null);
     }
+    @PostMapping("like")
+    public ResponseEntity like(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(postRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            PostModel p = postRepository.findById(id).get();
+            if (!p.getLikesIds().contains(u.getId())) {
+                p.getLikesIds().add(u.getId());
+                postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getText(), p.getTags(), p.isBanned(), p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("unlike")
+    public ResponseEntity unlike(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(postRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            PostModel p = postRepository.findById(id).get();
+            if (p.getLikesIds().contains(u.getId())) {
+                p.getLikesIds().remove(u.getId());
+                postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getText(), p.getTags(), p.isBanned(), p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
 
 }

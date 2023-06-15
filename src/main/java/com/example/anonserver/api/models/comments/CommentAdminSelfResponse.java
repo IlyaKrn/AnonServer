@@ -17,6 +17,7 @@ public class CommentAdminSelfResponse {
     private long id;
     private long authorId;
     private String text;
+    private List<Long> likesIds;
     private List<String> imagesUrls;
     private List<String> filesUrls;
     private boolean isBanned;

@@ -44,7 +44,7 @@ public class CommentController {
         if(commentRepository.existsById(id)){
             CommentModel c = commentRepository.findById(id).get();
             if (!c.isBanned() || !c.isDeleted()){
-                return ResponseEntity.ok(new CommentBaseResponse(c.getId(), c.getText(), c.getImagesUrls(), c.getFilesUrls()));
+                return ResponseEntity.ok(new CommentBaseResponse(c.getId(), c.getText(), c.getLikesIds().size(), c.getImagesUrls(), c.getFilesUrls()));
             }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -57,7 +57,7 @@ public class CommentController {
         if(auth.getAuthorities().contains(Role.ADMIN)) {
             if(commentRepository.existsById(id)){
                 CommentModel c = commentRepository.findById(id).get();
-                return ResponseEntity.ok(new CommentAdminResponse(c.getId(), c.getAuthorId(), c.getText(), c.getImagesUrls(), c.getFilesUrls(), c.isBanned(), c.isDeleted()));
+                return ResponseEntity.ok(new CommentAdminResponse(c.getId(), c.getAuthorId(), c.getText(), c.getLikesIds(), c.getImagesUrls(), c.getFilesUrls(), c.isBanned(), c.isDeleted()));
             }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -71,7 +71,7 @@ public class CommentController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             if(c.getAuthorId() == u.getId()){
                 if(!c.isDeleted()) {
-                    return ResponseEntity.ok(new CommentBaseSelfResponse(c.getId(), c.getAuthorId(), c.getText(), c.getImagesUrls(), c.getFilesUrls(), c.isBanned()));
+                    return ResponseEntity.ok(new CommentBaseSelfResponse(c.getId(), c.getAuthorId(), c.getText(), c.getLikesIds().size(), c.getImagesUrls(), c.getFilesUrls(), c.isBanned()));
                 }
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
@@ -86,7 +86,7 @@ public class CommentController {
             CommentModel p = commentRepository.findById(id).get();
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             if(p.getAuthorId() == u.getId() && auth.getAuthorities().contains(Role.ADMIN)){
-                return ResponseEntity.ok(new CommentAdminSelfResponse(p.getId(), p.getAuthorId(), p.getText(), p.getImagesUrls(), p.getFilesUrls(), p.isBanned(), p.isDeleted()));
+                return ResponseEntity.ok(new CommentAdminSelfResponse(p.getId(), p.getAuthorId(), p.getText(), p.getLikesIds(), p.getImagesUrls(), p.getFilesUrls(), p.isBanned(), p.isDeleted()));
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -100,7 +100,7 @@ public class CommentController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             CommentModel c = commentRepository.findById(id).get();
             if (c.getAuthorId() == u.getId()) {
-                commentRepository.save(new CommentModel(c.getId(), c.getAuthorId(), c.getText(), c.getImagesUrls(), c.getFilesUrls(), c.getUploadTime(), c.isEdited(), c.isBanned(), true));
+                commentRepository.save(new CommentModel(c.getId(), c.getAuthorId(), c.getText(), c.getLikesIds(), c.getImagesUrls(), c.getFilesUrls(), c.getUploadTime(), c.isEdited(), c.isBanned(), true));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -114,7 +114,7 @@ public class CommentController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             CommentModel c = commentRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
-                commentRepository.save(new CommentModel(c.getId(), c.getAuthorId(), c.getText(), c.getImagesUrls(), c.getFilesUrls(), c.getUploadTime(), c.isEdited(), true, c.isDeleted()));
+                commentRepository.save(new CommentModel(c.getId(), c.getAuthorId(), c.getText(), c.getLikesIds(), c.getImagesUrls(), c.getFilesUrls(), c.getUploadTime(), c.isEdited(), true, c.isDeleted()));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -128,7 +128,7 @@ public class CommentController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             CommentModel c = commentRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
-                commentRepository.save(new CommentModel(c.getId(), c.getAuthorId(), c.getText(), c.getImagesUrls(), c.getFilesUrls(), c.getUploadTime(), c.isEdited(), false, c.isDeleted()));
+                commentRepository.save(new CommentModel(c.getId(), c.getAuthorId(), c.getText(), c.getLikesIds(), c.getImagesUrls(), c.getFilesUrls(), c.getUploadTime(), c.isEdited(), false, c.isDeleted()));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -142,7 +142,7 @@ public class CommentController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             CommentModel c = commentRepository.findById(id).get();
             if (c.getAuthorId() == u.getId()) {
-                commentRepository.save(new CommentModel(c.getId(), c.getAuthorId(), request.getText(), request.getImagesUrls(), request.getFilesUrls(), c.getUploadTime(), true, c.isBanned(), c.isDeleted()));
+                commentRepository.save(new CommentModel(c.getId(), c.getAuthorId(), request.getText(), c.getLikesIds(), request.getImagesUrls(), request.getFilesUrls(), c.getUploadTime(), true, c.isBanned(), c.isDeleted()));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -155,7 +155,7 @@ public class CommentController {
         UserModel u = userRepository.findByUsername(auth.getName()).get();
         if(postRepository.existsById(post_id)){
 
-            CommentModel c = new CommentModel(0, u.getId(), request.getText(), request.getImagesUrls(), request.getFilesUrls(), System.currentTimeMillis(), false, false, false);
+            CommentModel c = new CommentModel(0, u.getId(), request.getText(), new ArrayList<>(), request.getImagesUrls(), request.getFilesUrls(), System.currentTimeMillis(), false, false, false);
             PostModel p = postRepository.findById(post_id).get();
             long id = commentRepository.save(c).getId();
             p.getCommentsIds().add(id);
@@ -164,6 +164,36 @@ public class CommentController {
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
+    }
+    @PostMapping("like")
+    public ResponseEntity like(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(postRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            CommentModel p = commentRepository.findById(id).get();
+            if (!p.getLikesIds().contains(u.getId())) {
+                p.getLikesIds().add(u.getId());
+                commentRepository.save(new CommentModel(p.getId(), p.getAuthorId(), p.getText(), p.getLikesIds(), p.getImagesUrls(), p.getFilesUrls(), p.getUploadTime(), p.isEdited(), p.isBanned(), p.isDeleted()));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("unlike")
+    public ResponseEntity unlike(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(commentRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            CommentModel p = commentRepository.findById(id).get();
+            if (p.getLikesIds().contains(u.getId())) {
+                p.getLikesIds().remove(u.getId());
+                commentRepository.save(new CommentModel(p.getId(), p.getAuthorId(), p.getText(), p.getLikesIds(), p.getImagesUrls(), p.getFilesUrls(), p.getUploadTime(), p.isEdited(), p.isBanned(), p.isDeleted()));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
 }
