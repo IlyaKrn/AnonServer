@@ -15,6 +15,7 @@ import com.example.anonserver.domain.models.PostModel;
 import com.example.anonserver.domain.models.Role;
 import com.example.anonserver.domain.models.UserModel;
 import com.example.anonserver.repositories.CommentRepository;
+import com.example.anonserver.repositories.PostRepository;
 import com.example.anonserver.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,8 @@ public class CommentController {
 
     @Autowired
     private CommentRepository commentRepository;
+    @Autowired
+    private PostRepository postRepository;
     @Autowired
     private UserRepository userRepository;
 
@@ -93,7 +96,7 @@ public class CommentController {
     @PostMapping("delete")
     public ResponseEntity delete(@RequestParam("id") long id){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(commentRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+        if(commentRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             CommentModel c = commentRepository.findById(id).get();
             if (c.getAuthorId() == u.getId()) {
@@ -107,7 +110,7 @@ public class CommentController {
     @PostMapping("ban")
     public ResponseEntity ban(@RequestParam("id") long id){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(commentRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+        if(commentRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             CommentModel c = commentRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
@@ -121,7 +124,7 @@ public class CommentController {
     @PostMapping("unban")
     public ResponseEntity unban(@RequestParam("id") long id){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(commentRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+        if(commentRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             CommentModel c = commentRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
@@ -135,7 +138,7 @@ public class CommentController {
     @PostMapping("edit")
     public ResponseEntity edit(@RequestParam("id") long id, @RequestBody EditCommentRequest request){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(commentRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+        if(commentRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             CommentModel c = commentRepository.findById(id).get();
             if (c.getAuthorId() == u.getId()) {
@@ -147,12 +150,20 @@ public class CommentController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
     @PostMapping("create")
-    public ResponseEntity create(@RequestBody EditCommentRequest request){
+    public ResponseEntity create(@RequestParam("post_id") long post_id, @RequestBody EditCommentRequest request){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserModel u = userRepository.findByUsername(auth.getName()).get();
-        CommentModel p = new CommentModel(0, u.getId(), request.getText(), request.getImagesUrls(), request.getFilesUrls(), System.currentTimeMillis(), false, false, false);
-        commentRepository.save(p);
-        return ResponseEntity.ok(null);
+        if(postRepository.existsById(post_id)){
+
+            CommentModel c = new CommentModel(0, u.getId(), request.getText(), request.getImagesUrls(), request.getFilesUrls(), System.currentTimeMillis(), false, false, false);
+            PostModel p = postRepository.findById(post_id).get();
+            long id = commentRepository.save(c).getId();
+            p.getCommentsIds().add(id);
+            postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getText(), p.getTags(), p.isBanned(), p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+            return ResponseEntity.ok(null);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
     }
 
 }

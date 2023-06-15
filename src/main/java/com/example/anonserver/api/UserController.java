@@ -1,5 +1,6 @@
 package com.example.anonserver.api;
 
+import com.example.anonserver.api.models.edit.EditUserRequest;
 import com.example.anonserver.api.models.users.UserAdminResponse;
 import com.example.anonserver.api.models.users.UserAdminSelfResponse;
 import com.example.anonserver.api.models.users.UserBaseResponse;
@@ -66,7 +67,7 @@ public class UserController {
     @PostMapping("ban")
     public ResponseEntity ban(@RequestParam("id") long id){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(userRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+        if(userRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             UserModel c = userRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
@@ -80,7 +81,7 @@ public class UserController {
     @PostMapping("unban")
     public ResponseEntity unban(@RequestParam("id") long id){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(userRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+        if(userRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             UserModel c = userRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
@@ -91,5 +92,46 @@ public class UserController {
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
+    @PostMapping("subscribe")
+    public ResponseEntity subscribe(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(userRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            UserModel c = userRepository.findById(id).get();
+            if (!c.getSubscribersIds().contains(u.getId())) {
+                c.getSubscribersIds().add(u.getId());
+                userRepository.save(new UserModel(c.getId(), c.getUsername(), c.getPassword(), c.isBanned(), c.getSubscribersIds(), c.getRoles()));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("unsubscribe")
+    public ResponseEntity unsubscribe(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(userRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            UserModel c = userRepository.findById(id).get();
+            if (c.getSubscribersIds().contains(u.getId())) {
+                c.getSubscribersIds().remove(c.getId());
+                userRepository.save(new UserModel(c.getId(), c.getUsername(), c.getPassword(), c.isBanned(), c.getSubscribersIds(), c.getRoles()));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("editPassword")
+    public ResponseEntity editPassword(@RequestBody EditUserRequest request){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(userRepository.existsByUsername(auth.getName())) {
+            UserModel c = userRepository.findByUsername(auth.getName()).get();
+            userRepository.save(new UserModel(c.getId(), c.getUsername(), request.getPassword(), c.isBanned(), c.getSubscribersIds(), c.getRoles()));
+            return ResponseEntity.ok(null);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
 
 }

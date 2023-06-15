@@ -86,7 +86,7 @@ public class PostController {
     @PostMapping("delete")
     public ResponseEntity delete(@RequestParam("id") long id){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(postRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+        if(postRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             PostModel p = postRepository.findById(id).get();
             if (p.getAuthorId() == u.getId()) {
@@ -100,7 +100,7 @@ public class PostController {
     @PostMapping("ban")
     public ResponseEntity ban(@RequestParam("id") long id){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(postRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+        if(postRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             PostModel p = postRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
@@ -114,7 +114,7 @@ public class PostController {
     @PostMapping("unban")
     public ResponseEntity unban(@RequestParam("id") long id){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(postRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+        if(postRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             PostModel p = postRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
@@ -128,7 +128,7 @@ public class PostController {
     @PostMapping("edit")
     public ResponseEntity edit(@RequestParam("id") long id, @RequestBody EditPostRequest request){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(postRepository.existsById(id) || userRepository.existsByUsername(auth.getName())) {
+        if(postRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             PostModel p = postRepository.findById(id).get();
             if (p.getAuthorId() == u.getId()) {
