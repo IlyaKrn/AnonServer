@@ -1,14 +1,14 @@
 package com.example.anonserver.api;
 
 import com.example.anonserver.api.models.edit.EditPostRequest;
+import com.example.anonserver.api.models.edit.EditReportRequest;
 import com.example.anonserver.api.models.posts.PostAdminResponse;
 import com.example.anonserver.api.models.posts.PostAdminSelfResponse;
 import com.example.anonserver.api.models.posts.PostBaseResponse;
 import com.example.anonserver.api.models.posts.PostBaseSelfResponse;
-import com.example.anonserver.domain.models.PostModel;
-import com.example.anonserver.domain.models.Role;
-import com.example.anonserver.domain.models.UserModel;
+import com.example.anonserver.domain.models.*;
 import com.example.anonserver.repositories.PostRepository;
+import com.example.anonserver.repositories.ReportRepository;
 import com.example.anonserver.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +25,8 @@ public class PostController {
 
     @Autowired
     private PostRepository postRepository;
+    @Autowired
+    private ReportRepository reportRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -176,6 +178,17 @@ public class PostController {
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("report")
+    public ResponseEntity report(@RequestParam("id") long id, @RequestBody EditReportRequest request){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(postRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            PostModel p = postRepository.findById(id).get();
+            reportRepository.save(new ReportModel(0, u.getId(), request.getText(), ReportType.POST, id, false, false, System.currentTimeMillis()));
+            return ResponseEntity.ok(null);
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }

@@ -6,16 +6,15 @@ import com.example.anonserver.api.models.comments.CommentBaseResponse;
 import com.example.anonserver.api.models.comments.CommentBaseSelfResponse;
 import com.example.anonserver.api.models.edit.EditCommentRequest;
 import com.example.anonserver.api.models.edit.EditPostRequest;
+import com.example.anonserver.api.models.edit.EditReportRequest;
 import com.example.anonserver.api.models.posts.PostAdminResponse;
 import com.example.anonserver.api.models.posts.PostAdminSelfResponse;
 import com.example.anonserver.api.models.posts.PostBaseResponse;
 import com.example.anonserver.api.models.posts.PostBaseSelfResponse;
-import com.example.anonserver.domain.models.CommentModel;
-import com.example.anonserver.domain.models.PostModel;
-import com.example.anonserver.domain.models.Role;
-import com.example.anonserver.domain.models.UserModel;
+import com.example.anonserver.domain.models.*;
 import com.example.anonserver.repositories.CommentRepository;
 import com.example.anonserver.repositories.PostRepository;
+import com.example.anonserver.repositories.ReportRepository;
 import com.example.anonserver.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,6 +32,8 @@ public class CommentController {
 
     @Autowired
     private CommentRepository commentRepository;
+    @Autowired
+    private ReportRepository reportRepository;
     @Autowired
     private PostRepository postRepository;
     @Autowired
@@ -194,6 +195,17 @@ public class CommentController {
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("report")
+    public ResponseEntity report(@RequestParam("id") long id, @RequestBody EditReportRequest request){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(commentRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            CommentModel p = commentRepository.findById(id).get();
+            reportRepository.save(new ReportModel(0, u.getId(), request.getText(), ReportType.COMMENT, id, false, false, System.currentTimeMillis()));
+            return ResponseEntity.ok(null);
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
