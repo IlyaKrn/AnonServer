@@ -14,6 +14,7 @@ public class PostBaseSelfResponse {
     private long id;
     private long authorId;
     private int likesCount;
+    private boolean isLiked;
     private String text;
     private List<Long> commentsIds;
     private List<String> tags;

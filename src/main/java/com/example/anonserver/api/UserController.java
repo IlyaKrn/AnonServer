@@ -25,9 +25,11 @@ public class UserController {
 
     @GetMapping("getById")
     public ResponseEntity<UserBaseResponse> getById(@RequestParam("id") long id){
-        if(userRepository.existsById(id)){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(userRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
+            UserModel u1 = userRepository.findByUsername(auth.getName()).get();
             UserModel u = userRepository.findById(id).get();
-            return ResponseEntity.ok(new UserBaseResponse(u.getId(), u.isBanned(), u.getSubscribersIds().size(), u.getRoles()));
+            return ResponseEntity.ok(new UserBaseResponse(u.getId(), u.isBanned(), u.getSubscribersIds().size(), u.getSubscribersIds().contains(u1.getId()), u.getRoles()));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
@@ -37,7 +39,7 @@ public class UserController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(userRepository.existsByUsername(auth.getName())){
             UserModel u = userRepository.findByUsername(auth.getName()).get();
-            return ResponseEntity.ok(new UserBaseSelfResponse(u.getId(), u.getUsername(), u.getPassword(), u.getSubscribersIds().size(), u.getRoles()));
+            return ResponseEntity.ok(new UserBaseSelfResponse(u.getId(), u.getUsername(), u.getPassword(), u.getSubscribersIds().size(), u.getSubscribersIds().contains(u.getId()), u.getRoles()));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
@@ -48,6 +50,18 @@ public class UserController {
         if(auth.getAuthorities().contains(Role.ADMIN)) {
             if (userRepository.existsById(id)) {
                 UserModel u = userRepository.findById(id).get();
+                return ResponseEntity.ok(new UserAdminResponse(u.getId(), u.getUsername(), u.isBanned(), u.getSubscribersIds(), u.getRoles()));
+            }
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    @GetMapping("getAdmByUsername")
+    public ResponseEntity<UserAdminResponse> getAdmByUsername(@RequestParam("username") String username){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth.getAuthorities().contains(Role.ADMIN)) {
+            if (userRepository.existsByUsername(username)) {
+                UserModel u = userRepository.findByUsername(username).get();
                 return ResponseEntity.ok(new UserAdminResponse(u.getId(), u.getUsername(), u.isBanned(), u.getSubscribersIds(), u.getRoles()));
             }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

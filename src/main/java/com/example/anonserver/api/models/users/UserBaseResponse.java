@@ -19,6 +19,7 @@ public class UserBaseResponse {
     private long id;
     private boolean isBanned;
     private int subscribersCount;
+    private boolean isSubscribed;
     private List<Role> roles;
 
 }

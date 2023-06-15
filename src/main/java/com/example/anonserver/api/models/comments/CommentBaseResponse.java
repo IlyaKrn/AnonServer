@@ -18,6 +18,7 @@ public class CommentBaseResponse {
     private long id;
     private String text;
     private int likesCount;
+    private boolean isLiked;
     private List<String> imagesUrls;
     private List<String> filesUrls;
 

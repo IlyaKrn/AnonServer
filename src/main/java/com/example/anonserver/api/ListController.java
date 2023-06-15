@@ -1,10 +1,14 @@
 package com.example.anonserver.api;
 
+import com.example.anonserver.domain.models.CommentModel;
 import com.example.anonserver.domain.models.PostModel;
+import com.example.anonserver.domain.models.Role;
 import com.example.anonserver.domain.models.UserModel;
+import com.example.anonserver.repositories.CommentRepository;
 import com.example.anonserver.repositories.PostRepository;
 import com.example.anonserver.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,6 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.persistence.ElementCollection;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -22,6 +30,8 @@ public class ListController {
 
     @Autowired
     private PostRepository postRepository;
+    @Autowired
+    private CommentRepository commentRepository;
     @Autowired
     private UserRepository userRepository;
 
@@ -93,6 +103,113 @@ public class ListController {
         }
 
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("admUsers")
+    public ResponseEntity<ArrayList<Long>> recommendations(
+            @RequestParam(value = "count", defaultValue = "100") int count,
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
+            @RequestParam(value = "search", defaultValue = "") String search
+    ){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth.getAuthorities().contains(Role.ADMIN)) {
+            Map<String, Object> params = new HashMap<>();
+            try{
+                for(int i = 0; i < search.split(",").length; i++) {
+                    params.put(search.split(",")[i].split("_")[0], search.split(",")[i].split("_")[1]);
+                }
+            } catch (Exception e){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+
+            ArrayList<UserModel> users = (ArrayList<UserModel>) userRepository.findAll();
+            ArrayList<Long> response = new ArrayList<>();
+            for(UserModel u : users){
+                if (params.containsKey("banned") && !params.get("banned").equals(u.isBanned()))
+                    continue;
+                if (params.containsKey("subscriber") && !u.getSubscribersIds().contains(params.get("subscriber")))
+                    continue;
+                if (params.containsKey("role") && !u.getRoles().contains(Role.getFromString((String) params.get("role"))))
+                    continue;
+                response.add(u.getId());
+
+            }
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    @GetMapping("admPosts")
+    public ResponseEntity<ArrayList<Long>> posts(
+            @RequestParam(value = "count", defaultValue = "100") int count,
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
+            @RequestParam(value = "search", defaultValue = "") String search
+    ){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth.getAuthorities().contains(Role.ADMIN)) {
+            Map<String, Object> params = new HashMap<>();
+            try{
+                for(int i = 0; i < search.split(",").length; i++) {
+                    params.put(search.split(",")[i].split("_")[0], search.split(",")[i].split("_")[1]);
+                }
+            } catch (Exception e){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+
+            ArrayList<PostModel> posts = (ArrayList<PostModel>) postRepository.findAll();
+            ArrayList<Long> response = new ArrayList<>();
+            for(PostModel p : posts){
+                if (params.containsKey("banned") && !params.get("banned").equals(p.isBanned()))
+                    continue;
+                if (params.containsKey("authorId") && !params.get("authorId").equals(p.getAuthorId()))
+                    continue;
+                if (params.containsKey("likesId") && !p.getLikesIds().contains(params.get("likesId")))
+                    continue;
+                if (params.containsKey("commentsId") && !p.getCommentsIds().contains(params.get("commentsId")))
+                    continue;
+                if (params.containsKey("tag") && !p.getTags().contains(params.get("tag")))
+                    continue;
+                if (params.containsKey("deleted") && !params.get("deleted").equals(p.isDeleted()))
+                    continue;
+                response.add(p.getId());
+
+            }
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+    @GetMapping("admComments")
+    public ResponseEntity<ArrayList<Long>> admComments(
+            @RequestParam(value = "count", defaultValue = "100") int count,
+            @RequestParam(value = "offset", defaultValue = "0") int offset,
+            @RequestParam(value = "search", defaultValue = "") String search
+    ){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(auth.getAuthorities().contains(Role.ADMIN)) {
+            Map<String, Object> params = new HashMap<>();
+            try{
+                for(int i = 0; i < search.split(",").length; i++) {
+                    params.put(search.split(",")[i].split("_")[0], search.split(",")[i].split("_")[1]);
+                }
+            } catch (Exception e){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+
+            ArrayList<CommentModel> comments = (ArrayList<CommentModel>) commentRepository.findAll();
+            ArrayList<Long> response = new ArrayList<>();
+            for(CommentModel c : comments){
+                if (params.containsKey("banned") && !params.get("banned").equals(c.isBanned()))
+                    continue;
+                if (params.containsKey("deleted") && !params.get("deleted").equals(c.isDeleted()))
+                    continue;
+                if (params.containsKey("authorId") && !params.get("authorId").equals(c.getAuthorId()))
+                    continue;
+                if (params.containsKey("likesId") && !c.getLikesIds().contains(params.get("likesId")))
+                    continue;
+                response.add(c.getId());
+
+            }
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
 
 }

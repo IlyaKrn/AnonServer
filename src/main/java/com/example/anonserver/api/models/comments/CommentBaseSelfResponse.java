@@ -18,6 +18,7 @@ public class CommentBaseSelfResponse {
     private long authorId;
     private String text;
     private int likesCount;
+    private boolean isLiked;
     private List<String> imagesUrls;
     private List<String> filesUrls;
     private boolean isBanned;

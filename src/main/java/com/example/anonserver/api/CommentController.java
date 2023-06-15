@@ -41,10 +41,12 @@ public class CommentController {
 
     @GetMapping("getById")
     public ResponseEntity<CommentBaseResponse> getById(@RequestParam("id") long id){
-        if(commentRepository.existsById(id)){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(userRepository.existsByUsername(auth.getName()) && commentRepository.existsById(id)){
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
             CommentModel c = commentRepository.findById(id).get();
             if (!c.isBanned() || !c.isDeleted()){
-                return ResponseEntity.ok(new CommentBaseResponse(c.getId(), c.getText(), c.getLikesIds().size(), c.getImagesUrls(), c.getFilesUrls()));
+                return ResponseEntity.ok(new CommentBaseResponse(c.getId(), c.getText(), c.getLikesIds().size(), c.getLikesIds().contains(u.getId()), c.getImagesUrls(), c.getFilesUrls()));
             }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -71,7 +73,7 @@ public class CommentController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             if(c.getAuthorId() == u.getId()){
                 if(!c.isDeleted()) {
-                    return ResponseEntity.ok(new CommentBaseSelfResponse(c.getId(), c.getAuthorId(), c.getText(), c.getLikesIds().size(), c.getImagesUrls(), c.getFilesUrls(), c.isBanned()));
+                    return ResponseEntity.ok(new CommentBaseSelfResponse(c.getId(), c.getAuthorId(), c.getText(), c.getLikesIds().size(), c.getLikesIds().contains(u.getId()), c.getImagesUrls(), c.getFilesUrls(), c.isBanned()));
                 }
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }

@@ -16,5 +16,6 @@ public class UserBaseSelfResponse {
     private String username;
     private String password;
     private int subscribersCount;
+    private boolean isSubscribed;
     private List<Role> roles;
 }
