@@ -19,6 +19,7 @@ import java.util.List;
 public class PostBaseResponse {
     private long id;
     private int likesCount;
+    private String text;
     private List<Long> commentsIds;
     private List<String> tags;
     private long uploadTime;

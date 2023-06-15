@@ -35,7 +35,7 @@ public class PostController {
         if(postRepository.existsById(id)){
             PostModel p = postRepository.findById(id).get();
             if(!p.isBanned() || !p.isDeleted()){
-                return ResponseEntity.ok(new PostBaseResponse(p.getId(), p.getLikesIds().size(), p.getCommentsIds(), p.getTags(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+                return ResponseEntity.ok(new PostBaseResponse(p.getId(), p.getLikesIds().size(), p.getText(), p.getCommentsIds(), p.getTags(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
             }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -47,7 +47,7 @@ public class PostController {
         if(auth.getAuthorities().contains(Role.ADMIN)) {
             if(postRepository.existsById(id)){
                 PostModel p = postRepository.findById(id).get();
-                return ResponseEntity.ok(new PostAdminResponse(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getTags(), p.isBanned(), p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+                return ResponseEntity.ok(new PostAdminResponse(p.getId(), p.getAuthorId(), p.getText(), p.getLikesIds(), p.getCommentsIds(), p.getTags(), p.isBanned(), p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
             }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -61,7 +61,7 @@ public class PostController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             if(p.getAuthorId() == u.getId()){
                 if(!p.isDeleted()) {
-                    return ResponseEntity.ok(new PostBaseSelfResponse(p.getId(), p.getAuthorId(), p.getLikesIds().size(), p.getCommentsIds(), p.getTags(), p.isBanned(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+                    return ResponseEntity.ok(new PostBaseSelfResponse(p.getId(), p.getAuthorId(), p.getLikesIds().size(), p.getText(), p.getCommentsIds(), p.getTags(), p.isBanned(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
                 }
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
@@ -76,7 +76,7 @@ public class PostController {
             PostModel p = postRepository.findById(id).get();
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             if(p.getAuthorId() == u.getId() && auth.getAuthorities().contains(Role.ADMIN)){
-                return ResponseEntity.ok(new PostAdminSelfResponse(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getTags(), p.isBanned(), p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
+                return ResponseEntity.ok(new PostAdminSelfResponse(p.getId(), p.getAuthorId(), p.getText(), p.getLikesIds(), p.getCommentsIds(), p.getTags(), p.isBanned(), p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

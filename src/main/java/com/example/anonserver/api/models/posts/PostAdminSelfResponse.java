@@ -13,6 +13,7 @@ import java.util.List;
 public class PostAdminSelfResponse {
     private long id;
     private long authorId;
+    private String text;
     private List<Long> likesIds;
     private List<Long> commentsIds;
     private List<String> tags;
