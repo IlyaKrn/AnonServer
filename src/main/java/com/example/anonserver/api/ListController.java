@@ -35,13 +35,23 @@ public class ListController {
     @Autowired
     private UserRepository userRepository;
 
+    private static ArrayList<PostModel> postsCache = new ArrayList<>();
+    private static ArrayList<UserModel> usersCache = new ArrayList<>();
+    private static ArrayList<CommentModel> commentsCache = new ArrayList<>();
+    private static long updatePostsTime;
+    private static long updateUsersTime;
+    private static long updateCommentsTime;
+    private static long updateInterval = 5 * 60 * 1000;
+
     @GetMapping("recommendations")
     public ResponseEntity<ArrayList<Long>> recommendations(
             @RequestParam(value = "count", defaultValue = "100") int count,
             @RequestParam(value = "offset", defaultValue = "0") int offset
     ){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        ArrayList<PostModel> posts = (ArrayList<PostModel>) postRepository.findAll();
+        if(System.currentTimeMillis() > updatePostsTime + updateInterval)
+            postsCache = (ArrayList<PostModel>) postRepository.findAll();
+        ArrayList<PostModel> posts = new ArrayList<>(postsCache);
         posts.removeIf(new Predicate<PostModel>() {
             @Override
             public boolean test(PostModel postModel) {
@@ -121,7 +131,9 @@ public class ListController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
 
-            ArrayList<UserModel> users = (ArrayList<UserModel>) userRepository.findAll();
+            if(System.currentTimeMillis() > updateUsersTime + updateInterval)
+                usersCache = (ArrayList<UserModel>) userRepository.findAll();
+            ArrayList<UserModel> users = new ArrayList<>(usersCache);
             ArrayList<Long> response = new ArrayList<>();
             for(UserModel u : users){
                 if (params.containsKey("banned") && !params.get("banned").equals(u.isBanned()))
@@ -154,7 +166,9 @@ public class ListController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
 
-            ArrayList<PostModel> posts = (ArrayList<PostModel>) postRepository.findAll();
+            if(System.currentTimeMillis() > updatePostsTime + updateInterval)
+                postsCache = (ArrayList<PostModel>) postRepository.findAll();
+            ArrayList<PostModel> posts = new ArrayList<>(postsCache);
             ArrayList<Long> response = new ArrayList<>();
             for(PostModel p : posts){
                 if (params.containsKey("banned") && !params.get("banned").equals(p.isBanned()))
@@ -193,7 +207,9 @@ public class ListController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
             }
 
-            ArrayList<CommentModel> comments = (ArrayList<CommentModel>) commentRepository.findAll();
+            if(System.currentTimeMillis() > updateCommentsTime + updateInterval)
+                commentsCache = (ArrayList<CommentModel>) commentRepository.findAll();
+            ArrayList<CommentModel> comments = new ArrayList<>(commentsCache);
             ArrayList<Long> response = new ArrayList<>();
             for(CommentModel c : comments){
                 if (params.containsKey("banned") && !params.get("banned").equals(c.isBanned()))
@@ -211,5 +227,24 @@ public class ListController {
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
-
+    @GetMapping("selfPosts")
+    public ResponseEntity<ArrayList<Long>> selfPosts(
+            @RequestParam(value = "count", defaultValue = "100") int count,
+            @RequestParam(value = "offset", defaultValue = "0") int offset
+    ){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(userRepository.existsByUsername(auth.getName())) {
+            if(System.currentTimeMillis() > updatePostsTime + updateInterval)
+                postsCache = (ArrayList<PostModel>) postRepository.findAll();
+            ArrayList<PostModel> posts = new ArrayList<>(postsCache);
+            ArrayList<Long> response = new ArrayList<>();
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            for(PostModel p : posts){
+                if(u.getId() == p.getAuthorId())
+                    response.add(p.getId());
+            }
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
 }
