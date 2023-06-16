@@ -134,7 +134,7 @@ public class ListController {
             if(System.currentTimeMillis() > updateUsersTime + updateInterval)
                 usersCache = (ArrayList<UserModel>) userRepository.findAll();
             ArrayList<UserModel> users = new ArrayList<>(usersCache);
-            ArrayList<Long> response = new ArrayList<>();
+            ArrayList<Long> temp = new ArrayList<>();
             for(UserModel u : users){
                 if (params.containsKey("banned") && !params.get("banned").equals(u.isBanned()))
                     continue;
@@ -142,8 +142,22 @@ public class ListController {
                     continue;
                 if (params.containsKey("role") && !u.getRoles().contains(Role.getFromString((String) params.get("role"))))
                     continue;
-                response.add(u.getId());
+                temp.add(u.getId());
 
+            }
+            ArrayList<Long> response = new ArrayList<>();
+            if (offset > temp.size()){
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+            else if(offset + count > temp.size()){
+                for (int i = offset; i < temp.size(); i++){
+                    response.add(temp.get(i));
+                }
+            }
+            else {
+                for (int i = offset; i < count + offset; i++){
+                    response.add(temp.get(i));
+                }
             }
             return ResponseEntity.ok(response);
         }
@@ -169,7 +183,7 @@ public class ListController {
             if(System.currentTimeMillis() > updatePostsTime + updateInterval)
                 postsCache = (ArrayList<PostModel>) postRepository.findAll();
             ArrayList<PostModel> posts = new ArrayList<>(postsCache);
-            ArrayList<Long> response = new ArrayList<>();
+            ArrayList<Long> temp = new ArrayList<>();
             for(PostModel p : posts){
                 if (params.containsKey("banned") && !params.get("banned").equals(p.isBanned()))
                     continue;
@@ -183,8 +197,22 @@ public class ListController {
                     continue;
                 if (params.containsKey("deleted") && !params.get("deleted").equals(p.isDeleted()))
                     continue;
-                response.add(p.getId());
+                temp.add(p.getId());
 
+            }
+            ArrayList<Long> response = new ArrayList<>();
+            if (offset > temp.size()){
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+            else if(offset + count > temp.size()){
+                for (int i = offset; i < temp.size(); i++){
+                    response.add(temp.get(i));
+                }
+            }
+            else {
+                for (int i = offset; i < count + offset; i++){
+                    response.add(temp.get(i));
+                }
             }
             return ResponseEntity.ok(response);
         }
@@ -210,7 +238,7 @@ public class ListController {
             if(System.currentTimeMillis() > updateCommentsTime + updateInterval)
                 commentsCache = (ArrayList<CommentModel>) commentRepository.findAll();
             ArrayList<CommentModel> comments = new ArrayList<>(commentsCache);
-            ArrayList<Long> response = new ArrayList<>();
+            ArrayList<Long> temp = new ArrayList<>();
             for(CommentModel c : comments){
                 if (params.containsKey("banned") && !params.get("banned").equals(c.isBanned()))
                     continue;
@@ -220,8 +248,22 @@ public class ListController {
                     continue;
                 if (params.containsKey("likesId") && !c.getLikesIds().contains(params.get("likesId")))
                     continue;
-                response.add(c.getId());
+                temp.add(c.getId());
 
+            }
+            ArrayList<Long> response = new ArrayList<>();
+            if (offset > temp.size()){
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+            else if(offset + count > temp.size()){
+                for (int i = offset; i < temp.size(); i++){
+                    response.add(temp.get(i));
+                }
+            }
+            else {
+                for (int i = offset; i < count + offset; i++){
+                    response.add(temp.get(i));
+                }
             }
             return ResponseEntity.ok(response);
         }
@@ -237,11 +279,25 @@ public class ListController {
             if(System.currentTimeMillis() > updatePostsTime + updateInterval)
                 postsCache = (ArrayList<PostModel>) postRepository.findAll();
             ArrayList<PostModel> posts = new ArrayList<>(postsCache);
-            ArrayList<Long> response = new ArrayList<>();
+            ArrayList<Long> temp = new ArrayList<>();
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             for(PostModel p : posts){
                 if(u.getId() == p.getAuthorId())
-                    response.add(p.getId());
+                    temp.add(p.getId());
+            }
+            ArrayList<Long> response = new ArrayList<>();
+            if (offset > temp.size()){
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+            else if(offset + count > temp.size()){
+                for (int i = offset; i < temp.size(); i++){
+                    response.add(temp.get(i));
+                }
+            }
+            else {
+                for (int i = offset; i < count + offset; i++){
+                    response.add(temp.get(i));
+                }
             }
             return ResponseEntity.ok(response);
         }
