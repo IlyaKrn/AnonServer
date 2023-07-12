@@ -9,10 +9,8 @@ import com.example.anonserver.jwt.models.JwtRequest;
 import com.example.anonserver.jwt.models.JwtResponse;
 import com.example.anonserver.jwt.models.RefreshJwtRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,9 +24,6 @@ import java.util.ArrayList;
 @RequiredArgsConstructor
 public class AuthController {
 
-    @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate;
-
     private final AuthService authService;
     private final UserRepository userRepository;
 
@@ -36,7 +31,6 @@ public class AuthController {
     public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest authRequest) throws AuthException {
         try {
             final JwtResponse token = authService.login(authRequest);
-            simpMessagingTemplate.convertAndSend("/topic/auth", "enter in account");
             return ResponseEntity.ok(token);
         } catch (AuthException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);

@@ -40,7 +40,6 @@ public class JwtFilter extends GenericFilterBean {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain fc)
             throws IOException, ServletException {
         final String token = getTokenFromRequest((HttpServletRequest) request);
-
         if (token != null && jwtProvider.validateAccessToken(token)) {
             final Claims claims = jwtProvider.getAccessClaims(token);
             if (userRepository.existsByUsername(claims.getSubject()) && !userRepository.findByUsername(claims.getSubject()).get().isBanned()){
@@ -63,8 +62,6 @@ public class JwtFilter extends GenericFilterBean {
         if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")) {
             return bearer.substring(7);
         }
-        if (request.getHeader("Sec-WebSocket-Protocol") != null)
-            return request.getHeader("Sec-WebSocket-Protocol");
         return null;
     }
 
