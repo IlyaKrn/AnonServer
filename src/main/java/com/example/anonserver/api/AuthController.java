@@ -8,6 +8,7 @@ import com.example.anonserver.services.AuthService;
 import com.example.anonserver.jwt.models.JwtRequest;
 import com.example.anonserver.jwt.models.JwtResponse;
 import com.example.anonserver.jwt.models.RefreshJwtRequest;
+import com.example.anonserver.services.RabbitMQNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 @RequiredArgsConstructor
 public class AuthController {
 
+    private final RabbitMQNotificationService rabbitMQNotificationService;
     private final AuthService authService;
     private final UserRepository userRepository;
 
@@ -31,6 +33,7 @@ public class AuthController {
     public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest authRequest) throws AuthException {
         try {
             final JwtResponse token = authService.login(authRequest);
+            rabbitMQNotificationService.sendNotification(userRepository.findByUsername(authRequest.getUsername()).get().getId(), "enter in account");
             return ResponseEntity.ok(token);
         } catch (AuthException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
@@ -69,6 +72,7 @@ public class AuthController {
         }
         try {
             final JwtResponse token = authService.login(authRequest);
+            rabbitMQNotificationService.createNotificationQueue(userRepository.findByUsername(authRequest.getUsername()).get().getId());
             return ResponseEntity.ok(token);
         } catch (AuthException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
