@@ -33,7 +33,7 @@ public class AuthController {
     public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest authRequest) throws AuthException {
         try {
             final JwtResponse token = authService.login(authRequest);
-            rabbitMQNotificationService.sendNotification(userRepository.findByUsername(authRequest.getUsername()).get().getId(), "enter in account");
+            rabbitMQNotificationService.sendNotification(authRequest.getUsername(), "enter in account");
             return ResponseEntity.ok(token);
         } catch (AuthException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
@@ -72,7 +72,7 @@ public class AuthController {
         }
         try {
             final JwtResponse token = authService.login(authRequest);
-            rabbitMQNotificationService.createNotificationQueue(userRepository.findByUsername(authRequest.getUsername()).get().getId());
+            rabbitMQNotificationService.createNotificationQueue(authRequest.getUsername());
             return ResponseEntity.ok(token);
         } catch (AuthException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);

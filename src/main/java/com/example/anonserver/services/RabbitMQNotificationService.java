@@ -16,19 +16,20 @@ public class RabbitMQNotificationService {
     @Autowired
     private RabbitTemplate template;
 
-    public void createNotificationQueue(long uid){
-        Queue queue = new Queue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{uid}", String.valueOf(uid)), true, false, false);
-        Binding binding = new Binding(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{uid}", String.valueOf(uid)), Binding.DestinationType.QUEUE, RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{uid}", String.valueOf(uid)), null);
+    public void createNotificationQueue(String username){
+        Queue queue = new Queue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{username}", String.valueOf(username)), true, false, false);
+        Binding binding = new Binding(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{username}", String.valueOf(username)), Binding.DestinationType.QUEUE, RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{uid}", String.valueOf(username)), null);
         admin.declareQueue(queue);
         admin.declareBinding(binding);
     }
 
-    public void destroyNotificationQueue(long uid){
-        admin.purgeQueue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{uid}", String.valueOf(uid)));
+    public void destroyNotificationQueue(String username){
+        admin.purgeQueue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{username}", String.valueOf(username)));
     }
 
-    public void sendNotification(long uid, Object message){
-        template.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{uid}", String.valueOf(uid)), message);
+    public void sendNotification(String username, Object message){
+        createNotificationQueue(username);
+        template.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{username}", String.valueOf(username)), message);
     }
 
 }
