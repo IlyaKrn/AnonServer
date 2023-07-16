@@ -56,7 +56,7 @@ public class ReportController {
                                 postRepository.save(new PostModel(p.getId(), p.getAuthorId(), p.getLikesIds(), p.getCommentsIds(), p.getText(), p.getTags(), true, p.isDeleted(), p.getUploadTime(), p.isEdited(), p.getImagesUrls(), p.getFilesUrls()));
                                 if(userRepository.existsById(p.getId())){
                                     UserModel u1 = userRepository.findById(p.getId()).get();
-                                    userRepository.save(new UserModel(u1.getId(), u1.getUsername(), u1.getPassword(), true, u1.getSubscribersIds(), u1.getRoles()));
+                                    userRepository.save(new UserModel(u1.getId(), u1.getSecret(), u1.getUsername(), u1.getPassword(), true, u1.getSubscribersIds(), u1.getRoles()));
                                 }
                             }
                             break;
@@ -66,7 +66,7 @@ public class ReportController {
                                 commentRepository.save(new CommentModel(c.getId(), c.getAuthorId(), c.getText(), c.getLikesIds(), c.getImagesUrls(), c.getFilesUrls(), c.getUploadTime(), c.isEdited(), true, c.isDeleted()));
                                 if(userRepository.existsById(c.getId())){
                                     UserModel u1 = userRepository.findById(c.getId()).get();
-                                    userRepository.save(new UserModel(u1.getId(), u1.getUsername(), u1.getPassword(), true, u1.getSubscribersIds(), u1.getRoles()));
+                                    userRepository.save(new UserModel(u1.getId(), u1.getSecret(), u1.getUsername(), u1.getPassword(), true, u1.getSubscribersIds(), u1.getRoles()));
                                 }
                             }
                             break;

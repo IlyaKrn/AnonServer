@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
 
     public static final String EXCHANGE_NAME = "anon-exchange";
-    public static final String NOTIFICATIONS_QUEUE_PATTERN = "notifications-{username}";
-    public static final String ROUTING_KEY_NOTIFICATIONS_PATTERN = "user.{username}.notifications";
+    public static final String NOTIFICATIONS_QUEUE_PATTERN = "notifications-{secret}";
+    public static final String ROUTING_KEY_NOTIFICATIONS_PATTERN = "user.{secret}.notifications";
 
 
     @Bean

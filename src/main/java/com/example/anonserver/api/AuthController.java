@@ -10,6 +10,7 @@ import com.example.anonserver.jwt.models.JwtResponse;
 import com.example.anonserver.jwt.models.RefreshJwtRequest;
 import com.example.anonserver.services.RabbitMQNotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.security.auth.message.AuthException;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("api/auth")
@@ -33,7 +35,7 @@ public class AuthController {
     public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest authRequest) throws AuthException {
         try {
             final JwtResponse token = authService.login(authRequest);
-            rabbitMQNotificationService.sendNotification(authRequest.getUsername(), "enter in account");
+            rabbitMQNotificationService.sendNotification(userRepository.findByUsername(authRequest.getUsername()).get().getSecret(), "enter in account");
             return ResponseEntity.ok(token);
         } catch (AuthException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
@@ -65,18 +67,28 @@ public class AuthController {
         if(!userRepository.existsByUsername(authRequest.getUsername())){
             ArrayList<Role> roles = new ArrayList<>();
             roles.add(Role.USER);
-            userRepository.save(new UserModel(0, authRequest.getUsername(), authRequest.getPassword(), false, new ArrayList<>(), roles));
+            long secret;
+            do {
+                secret = Math.round(Math.random() * 1000000000);
+            } while (userRepository.existsBySecret(secret));
+            userRepository.save(new UserModel(0, secret, authRequest.getUsername(), authRequest.getPassword(), false, new ArrayList<>(), roles));
         }
         else {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
         try {
             final JwtResponse token = authService.login(authRequest);
-            rabbitMQNotificationService.createNotificationQueue(authRequest.getUsername());
+            rabbitMQNotificationService.createNotificationQueue(userRepository.findByUsername(authRequest.getUsername()).get().getSecret());
             return ResponseEntity.ok(token);
         } catch (AuthException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
+    }
+
+
+    @RabbitListener(queues = "notifications-985357438")
+    public void f(String s){
+        Logger.getAnonymousLogger().warning(s);
     }
 
 }

@@ -16,20 +16,20 @@ public class RabbitMQNotificationService {
     @Autowired
     private RabbitTemplate template;
 
-    public void createNotificationQueue(String username){
-        Queue queue = new Queue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{username}", String.valueOf(username)), true, false, false);
-        Binding binding = new Binding(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{username}", String.valueOf(username)), Binding.DestinationType.QUEUE, RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{uid}", String.valueOf(username)), null);
+    public void createNotificationQueue(long secret){
+        Queue queue = new Queue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{secret}", String.valueOf(secret)), true, false, false);
+        Binding binding = new Binding(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{secret}", String.valueOf(secret)), Binding.DestinationType.QUEUE, RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{secret}", String.valueOf(secret)), null);
         admin.declareQueue(queue);
         admin.declareBinding(binding);
     }
 
-    public void destroyNotificationQueue(String username){
-        admin.purgeQueue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{username}", String.valueOf(username)));
+    public void destroyNotificationQueue(long secret){
+        admin.purgeQueue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{secret}", String.valueOf(secret)));
     }
 
-    public void sendNotification(String username, Object message){
-        createNotificationQueue(username);
-        template.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{username}", String.valueOf(username)), message);
+    public void sendNotification(long secret, Object message){
+        createNotificationQueue(secret);
+        template.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{secret}", String.valueOf(secret)), message);
     }
 
 }

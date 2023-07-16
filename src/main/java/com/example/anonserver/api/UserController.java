@@ -39,7 +39,7 @@ public class UserController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(userRepository.existsByUsername(auth.getName())){
             UserModel u = userRepository.findByUsername(auth.getName()).get();
-            return ResponseEntity.ok(new UserBaseSelfResponse(u.getId(), u.getUsername(), u.getPassword(), u.getSubscribersIds().size(), u.getSubscribersIds().contains(u.getId()), u.getRoles()));
+            return ResponseEntity.ok(new UserBaseSelfResponse(u.getId(), u.getSecret(), u.getUsername(), u.getPassword(), u.getSubscribersIds().size(), u.getSubscribersIds().contains(u.getId()), u.getRoles()));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
@@ -74,7 +74,7 @@ public class UserController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(userRepository.existsByUsername(auth.getName())){
             UserModel u = userRepository.findByUsername(auth.getName()).get();
-            return ResponseEntity.ok(new UserAdminSelfResponse(u.getId(), u.getUsername(), u.getPassword(), u.getSubscribersIds(), u.getRoles()));
+            return ResponseEntity.ok(new UserAdminSelfResponse(u.getId(), u.getSecret(), u.getUsername(), u.getPassword(), u.getSubscribersIds(), u.getRoles()));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
@@ -85,7 +85,7 @@ public class UserController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             UserModel c = userRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
-                userRepository.save(new UserModel(c.getId(), c.getUsername(), c.getPassword(), true, c.getSubscribersIds(), c.getRoles()));
+                userRepository.save(new UserModel(c.getId(), c.getSecret(), c.getUsername(), c.getPassword(), true, c.getSubscribersIds(), c.getRoles()));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -99,7 +99,7 @@ public class UserController {
             UserModel u = userRepository.findByUsername(auth.getName()).get();
             UserModel c = userRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
-                userRepository.save(new UserModel(c.getId(), c.getUsername(), c.getPassword(), false, c.getSubscribersIds(), c.getRoles()));
+                userRepository.save(new UserModel(c.getId(), c.getSecret(), c.getUsername(), c.getPassword(), false, c.getSubscribersIds(), c.getRoles()));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -114,7 +114,7 @@ public class UserController {
             UserModel c = userRepository.findById(id).get();
             if (!c.getSubscribersIds().contains(u.getId())) {
                 c.getSubscribersIds().add(u.getId());
-                userRepository.save(new UserModel(c.getId(), c.getUsername(), c.getPassword(), c.isBanned(), c.getSubscribersIds(), c.getRoles()));
+                userRepository.save(new UserModel(c.getId(), c.getSecret(), c.getUsername(), c.getPassword(), c.isBanned(), c.getSubscribersIds(), c.getRoles()));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -129,7 +129,7 @@ public class UserController {
             UserModel c = userRepository.findById(id).get();
             if (c.getSubscribersIds().contains(u.getId())) {
                 c.getSubscribersIds().remove(c.getId());
-                userRepository.save(new UserModel(c.getId(), c.getUsername(), c.getPassword(), c.isBanned(), c.getSubscribersIds(), c.getRoles()));
+                userRepository.save(new UserModel(c.getId(), c.getSecret(), c.getUsername(), c.getPassword(), c.isBanned(), c.getSubscribersIds(), c.getRoles()));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -141,7 +141,7 @@ public class UserController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(userRepository.existsByUsername(auth.getName())) {
             UserModel c = userRepository.findByUsername(auth.getName()).get();
-            userRepository.save(new UserModel(c.getId(), c.getUsername(), request.getPassword(), c.isBanned(), c.getSubscribersIds(), c.getRoles()));
+            userRepository.save(new UserModel(c.getId(), c.getSecret(), c.getUsername(), request.getPassword(), c.isBanned(), c.getSubscribersIds(), c.getRoles()));
             return ResponseEntity.ok(null);
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
