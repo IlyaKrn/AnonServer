@@ -85,10 +85,4 @@ public class AuthController {
         }
     }
 
-
-    @RabbitListener(queues = "notifications-985357438")
-    public void f(String s){
-        Logger.getAnonymousLogger().warning(s);
-    }
-
 }
