@@ -1,6 +1,8 @@
 package com.example.anonserver.api;
 
 import com.example.anonserver.api.models.edit.EditUserRequest;
+import com.example.anonserver.api.models.notifications.NotificationResponse;
+import com.example.anonserver.api.models.notifications.NotificationType;
 import com.example.anonserver.api.models.reports.ReportAdminResponse;
 import com.example.anonserver.api.models.users.UserAdminResponse;
 import com.example.anonserver.api.models.users.UserAdminSelfResponse;
@@ -11,6 +13,7 @@ import com.example.anonserver.repositories.CommentRepository;
 import com.example.anonserver.repositories.PostRepository;
 import com.example.anonserver.repositories.ReportRepository;
 import com.example.anonserver.repositories.UserRepository;
+import com.example.anonserver.services.RabbitMQNotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/reports")
 public class ReportController {
 
+    @Autowired
+    private RabbitMQNotificationService rabbitMQNotificationService;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -72,7 +77,9 @@ public class ReportController {
                             break;
                     }
                 }
-                reportRepository.save(new ReportModel(r.getId(), r.getAuthorId(), r.getText(), r.getType(), r.getResourceId(), true, violation, r.getUploadTime()));
+                ReportModel rep = new ReportModel(r.getId(), r.getAuthorId(), r.getText(), r.getType(), r.getResourceId(), true, violation, r.getUploadTime());
+                reportRepository.save(rep);
+                rabbitMQNotificationService.sendNotification(userRepository.findById(r.getAuthorId()).get().getSecret(), new NotificationResponse(NotificationType.REPORT_CHECK, rep));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();

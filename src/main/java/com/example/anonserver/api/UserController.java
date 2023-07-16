@@ -1,6 +1,8 @@
 package com.example.anonserver.api;
 
 import com.example.anonserver.api.models.edit.EditUserRequest;
+import com.example.anonserver.api.models.notifications.NotificationResponse;
+import com.example.anonserver.api.models.notifications.NotificationType;
 import com.example.anonserver.api.models.users.UserAdminResponse;
 import com.example.anonserver.api.models.users.UserAdminSelfResponse;
 import com.example.anonserver.api.models.users.UserBaseResponse;
@@ -9,6 +11,7 @@ import com.example.anonserver.domain.models.CommentModel;
 import com.example.anonserver.domain.models.Role;
 import com.example.anonserver.domain.models.UserModel;
 import com.example.anonserver.repositories.UserRepository;
+import com.example.anonserver.services.RabbitMQNotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/users")
 public class UserController {
 
+    @Autowired
+    private RabbitMQNotificationService rabbitMQNotificationService;
     @Autowired
     private UserRepository userRepository;
 
@@ -100,6 +105,38 @@ public class UserController {
             UserModel c = userRepository.findById(id).get();
             if (auth.getAuthorities().contains(Role.ADMIN)) {
                 userRepository.save(new UserModel(c.getId(), c.getSecret(), c.getUsername(), c.getPassword(), false, c.getSubscribersIds(), c.getRoles()));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("setAdm")
+    public ResponseEntity setAdm(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(userRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            UserModel c = userRepository.findById(id).get();
+            if (auth.getAuthorities().contains(Role.ULTIMATE)) {
+                c.getRoles().add(Role.ADMIN);
+                userRepository.save(new UserModel(c.getId(), c.getSecret(), c.getUsername(), c.getPassword(), c.isBanned(), c.getSubscribersIds(), c.getRoles()));
+                rabbitMQNotificationService.sendNotification(c.getSecret(), new NotificationResponse(NotificationType.ROLE_ADMIN, null));
+                return ResponseEntity.ok(null);
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+    @PostMapping("setNoAdm")
+    public ResponseEntity setNoAdm(@RequestParam("id") long id){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(userRepository.existsById(id) && userRepository.existsByUsername(auth.getName())) {
+            UserModel u = userRepository.findByUsername(auth.getName()).get();
+            UserModel c = userRepository.findById(id).get();
+            if (auth.getAuthorities().contains(Role.ULTIMATE)) {
+                c.getRoles().remove(Role.ADMIN);
+                userRepository.save(new UserModel(c.getId(), c.getSecret(), c.getUsername(), c.getPassword(), c.isBanned(), c.getSubscribersIds(), c.getRoles()));
+                rabbitMQNotificationService.sendNotification(c.getSecret(), new NotificationResponse(NotificationType.ROLE_NO_ADMIN, null));
                 return ResponseEntity.ok(null);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

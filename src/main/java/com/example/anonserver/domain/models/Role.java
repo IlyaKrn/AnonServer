@@ -6,7 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 
 @RequiredArgsConstructor
 public enum Role implements GrantedAuthority {
-    USER, ADMIN;
+    USER, ADMIN, ULTIMATE;
 
     @Override
     public String getAuthority() {
@@ -20,6 +20,8 @@ public enum Role implements GrantedAuthority {
                 return Role.USER;
             case "ADMIN":
                 return Role.ADMIN;
+            case "ULTIMATE":
+                return Role.ULTIMATE;
             default:
                 throw new ClassCastException("String " + s + " can not be cast to Role");
         }

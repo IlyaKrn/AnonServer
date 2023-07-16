@@ -1,5 +1,6 @@
 package com.example.anonserver.services;
 
+import com.example.anonserver.api.models.notifications.NotificationResponse;
 import com.example.anonserver.configs.RabbitMQConfig;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
@@ -27,9 +28,9 @@ public class RabbitMQNotificationService {
         admin.purgeQueue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{secret}", String.valueOf(secret)));
     }
 
-    public void sendNotification(long secret, Object message){
+    public void sendNotification(long secret, NotificationResponse response){
         createNotificationQueue(secret);
-        template.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{secret}", String.valueOf(secret)), message);
+        template.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{secret}", String.valueOf(secret)), response);
     }
 
 }

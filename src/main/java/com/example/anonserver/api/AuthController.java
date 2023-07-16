@@ -1,6 +1,8 @@
 package com.example.anonserver.api;
 
 
+import com.example.anonserver.api.models.notifications.NotificationResponse;
+import com.example.anonserver.api.models.notifications.NotificationType;
 import com.example.anonserver.domain.models.Role;
 import com.example.anonserver.domain.models.UserModel;
 import com.example.anonserver.repositories.UserRepository;
@@ -35,7 +37,7 @@ public class AuthController {
     public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest authRequest) throws AuthException {
         try {
             final JwtResponse token = authService.login(authRequest);
-            rabbitMQNotificationService.sendNotification(userRepository.findByUsername(authRequest.getUsername()).get().getSecret(), "enter in account");
+            rabbitMQNotificationService.sendNotification(userRepository.findByUsername(authRequest.getUsername()).get().getSecret(), new NotificationResponse(NotificationType.ENTER_IN_ACCOUNT, null));
             return ResponseEntity.ok(token);
         } catch (AuthException e){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);

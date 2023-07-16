@@ -32,8 +32,9 @@ public class AuthService {
         if (user.getPassword().equals(authRequest.getPassword())) {
             final String accessToken = jwtProvider.generateAccessToken(user);
             final String refreshToken = jwtProvider.generateRefreshToken(user);
+            final long secret = userService.getByLogin(user.getUsername()).get().getSecret();
             refreshStorage.put(user.getUsername(), refreshToken);
-            return new JwtResponse(accessToken, refreshToken);
+            return new JwtResponse(accessToken, refreshToken, secret);
         } else {
             throw new AuthException("Неправильный пароль");
         }
@@ -48,10 +49,11 @@ public class AuthService {
                 final UserModel user = userService.getByLogin(login)
                         .orElseThrow(() -> new AuthException("Пользователь не найден"));
                 final String accessToken = jwtProvider.generateAccessToken(user);
-                return new JwtResponse(accessToken, null);
+                final long secret = userService.getByLogin(user.getUsername()).get().getSecret();
+                return new JwtResponse(accessToken, null, secret);
             }
         }
-        return new JwtResponse(null, null);
+        return new JwtResponse(null, null, null);
     }
 
     public JwtResponse refresh(@NonNull String refreshToken) throws AuthException {
@@ -64,8 +66,9 @@ public class AuthService {
                         .orElseThrow(() -> new AuthException("Пользователь не найден"));
                 final String accessToken = jwtProvider.generateAccessToken(user);
                 final String newRefreshToken = jwtProvider.generateRefreshToken(user);
+                final long secret = userService.getByLogin(user.getUsername()).get().getSecret();
                 refreshStorage.put(user.getUsername(), newRefreshToken);
-                return new JwtResponse(accessToken, newRefreshToken);
+                return new JwtResponse(accessToken, newRefreshToken, secret);
             }
         }
         throw new AuthException("Невалидный JWT токен");
