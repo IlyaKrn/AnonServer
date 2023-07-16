@@ -13,7 +13,7 @@ import java.util.List;
 public class UserBaseSelfResponse {
 
     private long id;
-    private long secret;
+    private String secret;
     private String username;
     private String password;
     private int subscribersCount;

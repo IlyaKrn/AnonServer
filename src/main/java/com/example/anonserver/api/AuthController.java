@@ -73,7 +73,7 @@ public class AuthController {
             do {
                 secret = Math.round(Math.random() * 1000000000);
             } while (userRepository.existsBySecret(secret));
-            userRepository.save(new UserModel(0, secret, authRequest.getUsername(), authRequest.getPassword(), false, new ArrayList<>(), roles));
+            userRepository.save(new UserModel(0, String.valueOf(secret), authRequest.getUsername(), authRequest.getPassword(), false, new ArrayList<>(), roles));
         }
         else {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);

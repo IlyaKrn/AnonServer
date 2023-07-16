@@ -19,7 +19,7 @@ public class UserModel {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
-    private long secret;
+    private String secret;
     private String username;
     private String password;
     private boolean isBanned;

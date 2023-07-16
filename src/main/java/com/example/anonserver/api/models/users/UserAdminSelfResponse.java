@@ -17,7 +17,7 @@ import java.util.List;
 public class UserAdminSelfResponse {
 
     private long id;
-    private long secret;
+    private String secret;
     private String username;
     private String password;
     private List<Long> subscribersIds;

@@ -32,7 +32,7 @@ public class AuthService {
         if (user.getPassword().equals(authRequest.getPassword())) {
             final String accessToken = jwtProvider.generateAccessToken(user);
             final String refreshToken = jwtProvider.generateRefreshToken(user);
-            final long secret = userService.getByLogin(user.getUsername()).get().getSecret();
+            final String secret = userService.getByLogin(user.getUsername()).get().getSecret();
             refreshStorage.put(user.getUsername(), refreshToken);
             return new JwtResponse(accessToken, refreshToken, secret);
         } else {
@@ -49,7 +49,7 @@ public class AuthService {
                 final UserModel user = userService.getByLogin(login)
                         .orElseThrow(() -> new AuthException("Пользователь не найден"));
                 final String accessToken = jwtProvider.generateAccessToken(user);
-                final long secret = userService.getByLogin(user.getUsername()).get().getSecret();
+                final String secret = userService.getByLogin(user.getUsername()).get().getSecret();
                 return new JwtResponse(accessToken, null, secret);
             }
         }
@@ -66,7 +66,7 @@ public class AuthService {
                         .orElseThrow(() -> new AuthException("Пользователь не найден"));
                 final String accessToken = jwtProvider.generateAccessToken(user);
                 final String newRefreshToken = jwtProvider.generateRefreshToken(user);
-                final long secret = userService.getByLogin(user.getUsername()).get().getSecret();
+                final String secret = userService.getByLogin(user.getUsername()).get().getSecret();
                 refreshStorage.put(user.getUsername(), newRefreshToken);
                 return new JwtResponse(accessToken, newRefreshToken, secret);
             }

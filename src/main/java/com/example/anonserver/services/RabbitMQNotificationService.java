@@ -17,20 +17,20 @@ public class RabbitMQNotificationService {
     @Autowired
     private RabbitTemplate template;
 
-    public void createNotificationQueue(long secret){
-        Queue queue = new Queue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{secret}", String.valueOf(secret)), true, false, false);
-        Binding binding = new Binding(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{secret}", String.valueOf(secret)), Binding.DestinationType.QUEUE, RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{secret}", String.valueOf(secret)), null);
+    public void createNotificationQueue(String secret){
+        Queue queue = new Queue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{secret}", secret), true, false, false);
+        Binding binding = new Binding(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{secret}", secret), Binding.DestinationType.QUEUE, RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{secret}", String.valueOf(secret)), null);
         admin.declareQueue(queue);
         admin.declareBinding(binding);
     }
 
-    public void destroyNotificationQueue(long secret){
-        admin.purgeQueue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{secret}", String.valueOf(secret)));
+    public void destroyNotificationQueue(String secret){
+        admin.purgeQueue(RabbitMQConfig.NOTIFICATIONS_QUEUE_PATTERN.replace("{secret}", secret));
     }
 
-    public void sendNotification(long secret, NotificationResponse response){
+    public void sendNotification(String secret, NotificationResponse response){
         createNotificationQueue(secret);
-        template.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{secret}", String.valueOf(secret)), response);
+        template.convertAndSend(RabbitMQConfig.EXCHANGE_NAME, RabbitMQConfig.ROUTING_KEY_NOTIFICATIONS_PATTERN.replace("{secret}", secret), response);
     }
 
 }
