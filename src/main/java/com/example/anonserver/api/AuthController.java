@@ -72,7 +72,7 @@ public class AuthController {
             long secret;
             do {
                 secret = Math.round(Math.random() * 1000000000);
-            } while (userRepository.existsBySecret(secret));
+            } while (userRepository.existsBySecret(String.valueOf(secret)));
             userRepository.save(new UserModel(0, String.valueOf(secret), authRequest.getUsername(), authRequest.getPassword(), false, new ArrayList<>(), roles));
         }
         else {
